@@ -32,4 +32,5 @@ def load_data_patient_test(df, archivo_id):
     
     return dataset_test
 
-def load_model(path_model, dataset_test
+def load_model(path_model, dataset_test):
+  
