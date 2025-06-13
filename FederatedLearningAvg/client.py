@@ -1,3 +1,4 @@
+import flwr
 import torch
 from data import cargar_datos_paciente
 from model import CustomTFT
