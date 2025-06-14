@@ -5,12 +5,15 @@ from collections import OrderedDict
 
 from flwr.client import NumPyClient, Client, ClientApp
 from pytorch_forecasting.metrics import QuantileLoss
-
+from data_loader import load_full_dataframe
 from models import CustomTFT, get_parameters, set_parameters
 from datasets import load_datasets
 from train import train, test
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+df = load_full_dataframe("../df.parquet")
+
 
 class FlowerClient(NumPyClient):
     def __init__(self, net, trainloader, valloader):
