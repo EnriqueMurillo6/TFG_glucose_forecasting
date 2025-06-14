@@ -1,7 +1,7 @@
 from server import server
 from client import client
 from flwr import run_simulation
-from src.constants import DEVICE, NUM_CLIENTS  
+from datasets import NUM_CLIENTS  
 
 
 backend_config = {"client_resources": {"num_cpus": 1, "num_gpus": 0.0}}
