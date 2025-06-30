@@ -13,7 +13,7 @@ from flwr.common import Parameters
 from flwr.common import ndarrays_to_parameters
 from datasets import BATCH_SIZE
 
-df = pd.read_parquet("../df_15.parquet")
+df = pd.read_parquet("df_15.parquet")
 
 DEFAULT_LR        = 0.001
 DEFAULT_EPOCHS    = 5
