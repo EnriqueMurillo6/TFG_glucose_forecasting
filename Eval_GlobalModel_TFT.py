@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import warnings
 warnings.filterwarnings("ignore")
 import torch
@@ -14,6 +15,7 @@ from pytorch_lightning import Trainer, LightningModule
 import torch.nn as nn
 from pytorch_forecasting.data.encoders import EncoderNormalizer
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error
+from scipy.stats import pearsonr
 
 path_train = "/content/drive/MyDrive/TFG/Train-Test/df_train.parquet"
 path_test = "/content/drive/MyDrive/TFG/Train-Test/df_test_elim.parquet"
@@ -122,6 +124,23 @@ def compute_mard(predictions_df: pd.DataFrame, actuals_df: pd.DataFrame) -> floa
 
     mard = np.mean(np.abs(y_pred - y_true) / y_true) * 100
     return mard
+    
+def zone_percentages_new(file, zone):
+    total_points = zone[0] + zone[1] + zone[2] + zone[3] + zone[4]
+    A_zone = float(zone[0] / total_points) * 100
+    B_zone = float(zone[1] / total_points) * 100
+    C_zone = float(zone[2] / total_points) * 100
+    D_zone = float(zone[3] / total_points) * 100
+    E_zone = float(zone[4] / total_points) * 100
+    percentages = {
+        'Model': file,
+        'A_zone': A_zone,
+        'B_zone': B_zone,
+        'C_zone': C_zone,
+        'D_zone': D_zone,
+        'E_zone': E_zone
+    }
+    return percentages
 
 
 # Evaluación del modelo global para horizonte de 60 minutos. Solo habría que cambiar parámetros para otro horizonte.
@@ -156,3 +175,66 @@ df_test["time_idx"] = df_test.groupby("group_id").cumcount()
 test = TimeSeriesDataSet.from_dataset(training, df_test, predict=True, stop_randomization=True)
 test_dataloader = test.to_dataloader(train=False, batch_size=batch_size, num_workers=4)
 
+
+predictions = best_tft.predict(test_dataloader, mode="prediction")
+predictions_df = pd.DataFrame(predictions.cpu().numpy())
+
+actuals = []
+for batch in iter(test_dataloader):
+   targets = batch[1][0]
+   actuals.append(targets)
+
+# Calcular RMSE y MAE
+actuals = torch.cat(actuals).numpy()
+actuals_df = pd.DataFrame(actuals)
+rmse = root_mean_squared_error(predictions_df, actuals_df)
+mae = mean_absolute_error(predictions_df, actuals_df)
+
+# Calcular MARD
+mard_result = compute_mard(predictions_df, actuals_df)
+
+df = pd.DataFrame({
+    "Actual": actuals_df.values.flatten(),
+    "Prediction": predictions_df.values.flatten()
+})
+
+# Gráfico de dispersión
+plt.figure(figsize=(10,6))
+sns.scatterplot(x=df["Actual"], y=df["Prediction"], alpha=0.6)
+min_val = min(df["Actual"].min(), df["Prediction"].min())  
+max_val = max(df["Actual"].max(), df["Prediction"].max()) 
+plt.plot([min_val, max_val], [min_val, max_val], 'r--', linewidth=2)
+plt.xlabel("Valores reales")
+plt.ylabel("Predicciones")
+plt.title("Valores reales vs Valores predichos")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Zonas de error de Clarke
+ref_values = pd.Series(actuals_df.values.flatten())
+pred_values = pd.Series(predictions_df.values.flatten())
+clarke_error_grid(ref_values, pred_values)
+
+#Coeficiente de Pearson
+preds = predictions_df.to_numpy().flatten()
+actuals = actuals_df.to_numpy().flatten()
+pearson, _ = pearsonr(preds, actuals)
+
+# Histograma de errores
+errores = predictions_df.values.flatten() - actuals_df.values.flatten()
+plt.figure(figsize=(10, 6))
+plt.hist(errores, bins=50, color='skyblue', edgecolor='black')
+plt.title("Histograma de los errores de predicción")
+plt.xlabel("Error (mg/dL)")
+plt.ylabel("Frecuencia")
+plt.grid(True)
+plt.axvline(x=0, color='red', linestyle='--')
+plt.legend()
+plt.show()
+
+# Mostrar los resultados
+print("RMSE: ", rmse)
+print("MAE: ", mae)
+print(f"MARD: {mard_result:.2f}%")
+print(f"Coeficiente de Pearson: {pearson}")
