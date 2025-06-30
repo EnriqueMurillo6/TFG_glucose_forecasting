@@ -15,7 +15,7 @@ def save_global_model(weights, filename="global_model.pkl"):
     with open(filename, "wb") as f:
         pickle.dump(weights, f)
 
-NUM_ROUNDS=5
+NUM_ROUNDS=15
 
 class CustomFedAvg(FedAvg):
     def __init__(self, num_rounds, *args, **kwargs):
