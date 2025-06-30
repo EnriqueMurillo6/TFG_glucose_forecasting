@@ -1,6 +1,7 @@
 from pytorch_forecasting import TimeSeriesDataSet
 from pytorch_forecasting.data.encoders import EncoderNormalizer
 
+# Entrenamos con 15 clientes, luego evaluaremos el modelo global con 5 clientes diferentes de estos.
 NUM_CLIENTS = 15
 BATCH_SIZE = 512
 
