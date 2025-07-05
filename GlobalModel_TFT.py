@@ -55,7 +55,7 @@ class CustomTFT(TemporalFusionTransformer):
 
 
 path_train = "df_train.parquet"
-path_test = "df_test_elim.parquet"
+path_test = "df_test.parquet"
 
 df_train = pd.read_parquet(path_train)
 df_test = pd.read_parquet(path_test)
