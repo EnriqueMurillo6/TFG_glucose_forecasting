@@ -30,7 +30,8 @@ class CustomTFT(TemporalFusionTransformer):
         self.output_size = output_size
 
         self.cnn = nn.Sequential(
-            nn.Conv1d(in_channels=hidden_size, out_channels=cnn_out_channels, kernel_size=cnn_kernel_size, padding=cnn_>            nn.ReLU(),
+            nn.Conv1d(in_channels=hidden_size, out_channels=cnn_out_channels, kernel_size=cnn_kernel_size, padding=cnn_kernel_size // 2),
+            nn.ReLU(),
             nn.Conv1d(in_channels=cnn_out_channels, out_channels=hidden_size, kernel_size=1),
         )
 
